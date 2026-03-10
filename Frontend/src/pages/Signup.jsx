@@ -24,7 +24,7 @@ const Signup = () => {
     setError('');
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/signup', formData);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/signup`, formData);
       
       if (res.status === 201) {
         // 1. Log them in immediately by saving token/user
@@ -36,6 +36,7 @@ const Signup = () => {
         window.location.reload(); // Ensures Header updates with user name
       }
     } catch (err) {
+      console.error(err);
       setError(err.response?.data?.message || "Registration failed. Try again.");
     } finally {
       setLoading(false);

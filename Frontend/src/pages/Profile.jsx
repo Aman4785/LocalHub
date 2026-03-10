@@ -1,25 +1,83 @@
 // src/pages/Profile.jsx
-import React from 'react';
-import { User, Mail, MapPin, Phone, Edit2, Calendar, Star, Briefcase, Clock } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  Mail,
+  MapPin,
+  Phone,
+  Edit2,
+  Calendar,
+  Star,
+  Briefcase,
+  Clock,
+  DollarSign,
+  Award,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  // Mock user data (replace with real auth/context later)
-  const user = {
-    name: 'Abhishek Kumar',
-    email: 'abhishek@example.com',
-    phone: '+91 98765 43210',
-    location: 'Kolkata, West Bengal',
-    role: 'user', // 'user' or 'provider'
-    joinedDate: 'January 2026',
-    avatarUrl: null, // Add real avatar URL later
-    // Provider-specific mock data
-    rating: 4.9,
-    totalReviews: 128,
-    totalBookings: 45,
-    servicesOffered: 3,
-  };
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const isProvider = user.role === 'provider';
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/login");
+          return;
+        }
+
+        const response = await fetch("http://localhost:5000/api/auth/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch profile");
+        }
+
+        const data = await response.json();
+        setUser(data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="pt-16 min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="pt-16 min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  const isProvider = user.role === "provider";
 
   return (
     <div className="pt-16 min-h-screen bg-slate-50">
@@ -31,21 +89,22 @@ const Profile = () => {
             <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6">
               {/* Avatar */}
               <div className="w-32 h-32 bg-white rounded-full shadow-xl flex items-center justify-center border-4 border-white">
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="Profile" className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <User size={64} className="text-slate-400" />
-                )}
+                <User size={64} className="text-slate-400" />
               </div>
 
               {/* Name & Role */}
               <div className="text-center sm:text-left flex-1">
-                <h1 className="text-3xl font-bold text-slate-900">{user.name}</h1>
+                <h1 className="text-3xl font-bold text-slate-900">
+                  {user.name}
+                </h1>
                 <div className="flex items-center justify-center sm:justify-start gap-3 mt-2">
-                  <span className={`inline-flex items-center px-4 py-1 rounded-full text-sm font-medium
-                    ${isProvider 
-                      ? 'bg-emerald-100 text-emerald-800' 
-                      : 'bg-blue-100 text-purple-800'}`}
+                  <span
+                    className={`inline-flex items-center px-4 py-1 rounded-full text-sm font-medium
+                    ${
+                      isProvider
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-blue-100 text-purple-800"
+                    }`}
                   >
                     {isProvider ? (
                       <>
@@ -61,16 +120,20 @@ const Profile = () => {
                   </span>
                   <span className="text-slate-600 flex items-center">
                     <Calendar size={16} className="mr-1" />
-                    Joined {user.joinedDate}
+                    Joined{" "}
+                    {new Date(user.createdAt).toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })}
                   </span>
                 </div>
               </div>
 
               {/* Edit Button */}
-              <a href="/profile/edit" className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-lg flex items-center gap-2 transition">
+              <button className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-lg flex items-center gap-2 transition">
                 <Edit2 size={18} />
                 Edit Profile
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -82,25 +145,33 @@ const Profile = () => {
               <div className="flex items-center justify-center text-amber-500 mb-2">
                 <Star size={32} fill="currentColor" />
               </div>
-              <p className="text-3xl font-bold text-slate-900">{user.rating}</p>
-              <p className="text-slate-600">Average Rating ({user.totalReviews} reviews)</p>
+              <p className="text-3xl font-bold text-slate-900">
+                {user.rating || 0}
+              </p>
+              <p className="text-slate-600">Average Rating</p>
             </div>
             <div className="bg-white rounded-2xl shadow-md p-6 text-center">
-              <Briefcase size={32} className="mx-auto text-purple-600 mb-2" />
-              <p className="text-3xl font-bold text-slate-900">{user.servicesOffered}</p>
-              <p className="text-slate-600">Services Offered</p>
+              <Award size={32} className="mx-auto text-purple-600 mb-2" />
+              <p className="text-3xl font-bold text-slate-900">
+                {user.experience || 0} years
+              </p>
+              <p className="text-slate-600">Experience</p>
             </div>
             <div className="bg-white rounded-2xl shadow-md p-6 text-center">
-              <Clock size={32} className="mx-auto text-emerald-600 mb-2" />
-              <p className="text-3xl font-bold text-slate-900">{user.totalBookings}</p>
-              <p className="text-slate-600">Total Bookings</p>
+              <DollarSign size={32} className="mx-auto text-emerald-600 mb-2" />
+              <p className="text-3xl font-bold text-slate-900">
+                ₹{user.hourlyRate || 0}/hr
+              </p>
+              <p className="text-slate-600">Hourly Rate</p>
             </div>
           </div>
         )}
 
         {/* Personal Details */}
         <div className="mt-8 bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Personal Information</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">
+            Personal Information
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-center gap-4">
               <Mail size={24} className="text-slate-500" />
@@ -113,39 +184,63 @@ const Profile = () => {
               <Phone size={24} className="text-slate-500" />
               <div>
                 <p className="text-sm text-slate-600">Phone</p>
-                <p className="font-medium text-slate-900">{user.phone}</p>
+                <p className="font-medium text-slate-900">
+                  {user.phone || "Not provided"}
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <MapPin size={24} className="text-slate-500" />
-              <div>
-                <p className="text-sm text-slate-600">Location</p>
-                <p className="font-medium text-slate-900">{user.location}</p>
-              </div>
-            </div>
-            {isProvider && (
+            {user.address && (
               <div className="flex items-center gap-4">
-                <Clock size={24} className="text-slate-500" />
+                <MapPin size={24} className="text-slate-500" />
                 <div>
-                  <p className="text-sm text-slate-600">Availability</p>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">
-                    Available Now
-                  </span>
+                  <p className="text-sm text-slate-600">Address</p>
+                  <p className="font-medium text-slate-900">{user.address}</p>
                 </div>
               </div>
+            )}
+            {isProvider && (
+              <>
+                <div className="flex items-center gap-4">
+                  <Briefcase size={24} className="text-slate-500" />
+                  <div>
+                    <p className="text-sm text-slate-600">Category</p>
+                    <p className="font-medium text-slate-900">
+                      {user.category}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Clock size={24} className="text-slate-500" />
+                  <div>
+                    <p className="text-sm text-slate-600">Availability</p>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                        user.isAvailable
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {user.isAvailable ? "Available Now" : "Not Available"}
+                    </span>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="/booking" className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-8 py-4 rounded-lg text-center transition">
-            {isProvider ? 'View Incoming Bookings' : 'My Bookings'}
-          </a>
+          <button
+            onClick={() => navigate("/bookings")}
+            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-8 py-4 rounded-lg text-center transition"
+          >
+            {isProvider ? "View Incoming Bookings" : "My Bookings"}
+          </button>
           {isProvider && (
-            <a href="/services/manage" className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-4 rounded-lg text-center transition">
+            <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-4 rounded-lg text-center transition">
               Manage Services
-            </a>
+            </button>
           )}
         </div>
       </div>

@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
@@ -8,6 +13,10 @@ import Booking from "./pages/Booking";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Providers from "./pages/Providers";
+import SearchResults from "./pages/SearchResults";
+import Services from "./pages/Services";
+import Logout from "./pages/Logout";
 
 // A wrapper component to handle layout logic
 const Layout = ({ children }) => {
@@ -34,23 +43,36 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/logout" element={<Logout />} />
 
             {/* Protected Routes */}
-            <Route 
-              path="/profile" 
+            <Route
+              path="/profile"
               element={
                 <ProtectedRoute>
                   <Profile />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/booking" 
+            <Route
+              path="/bookings"
               element={
                 <ProtectedRoute>
                   <Booking />
                 </ProtectedRoute>
-              } 
+              }
+            />
+
+            <Route path="/search/:category" element={<SearchResults />} />
+
+            <Route
+              path="/providers"
+              element={
+                <ProtectedRoute>
+                  <Providers />
+                </ProtectedRoute>
+              }
             />
           </Routes>
         </Layout>
